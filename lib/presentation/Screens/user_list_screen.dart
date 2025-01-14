@@ -31,6 +31,7 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
     }
   }
 
+
   Future<List<Map<String, dynamic>>> loadChatPartners(String userId) async {
     final response = await _supabase
         .from('chats')
@@ -141,7 +142,7 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => ChatScreen(
-                                chatId: user['id'],
+                                receiverId: user['id'],
                                 username: user['username'],
                               ),
                             ),
@@ -210,7 +211,7 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => ChatScreen(
-                                    chatId: user['id'],
+                                    receiverId: user['id'],
                                     username: user['username'],
                                   ),
                                 ),
