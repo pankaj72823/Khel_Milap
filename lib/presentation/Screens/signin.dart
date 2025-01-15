@@ -1,4 +1,4 @@
-import 'package:dartz/dartz.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:khel_milap/presentation/Provider/user_id.dart';
@@ -29,13 +29,16 @@ class _Signin extends ConsumerState<Signin> {
     );
     final res = await _supabase
         .from('Users')
-        .select('id')
+        .select('id,name,sports')
         .eq('email', "${_supabase.auth.currentUser?.email}").single();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Signed in successfully'),
         ),
       );
       ref.read(userIdProvider.notifier).state = "${res['id']}";
+    ref.read(nameProvider.notifier).state = "${res['name']}";
+    ref.read(sportsProvider.notifier).state = res['sports'];
+
       Navigator.push(
           context, MaterialPageRoute(
           builder: (context) => HomeScreen(),
@@ -51,7 +54,7 @@ class _Signin extends ConsumerState<Signin> {
           Opacity(
             opacity: 0.2,
             child: Image.asset(
-              'assets/background.jpg',
+              'assets/cric.png',
               fit: BoxFit.contain,
               height: double.infinity,
               width: double.infinity,

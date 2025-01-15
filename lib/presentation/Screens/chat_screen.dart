@@ -23,6 +23,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String? _receiverImagePath;
   String? _senderImagePath;
   Timer? _refreshTimer;
+  ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -32,6 +33,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _refreshTimer?.cancel();
     super.dispose();
   }
@@ -64,6 +66,7 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         _messages = messages;
       });
+      _scrollToBottom();  // Scroll to the latest message
     } catch (e) {
       // Handle errors (e.g., log them)
     }
@@ -83,81 +86,117 @@ class _ChatScreenState extends State<ChatScreen> {
     await _fetchMessages(); // Fetch new messages after sending
   }
 
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.username),
+        centerTitle: true,
+        elevation: 2.0,  // A subtle shadow for the AppBar
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                final isSentByMe =
-                    message['sender_id'] == Supabase.instance.client.auth.currentUser!.id;
+      body: Padding(
+        padding: const EdgeInsets.all(12.0),  // Padding for the whole screen
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  final message = _messages[index];
+                  final isSentByMe =
+                      message['sender_id'] == Supabase.instance.client.auth.currentUser!.id;
 
-                return Row(
-                  mainAxisAlignment:
-                  isSentByMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-                  children: [
-                    if (!isSentByMe && _receiverImagePath != null)
-                      CircleAvatar(
-                        backgroundImage: FileImage(File(_receiverImagePath!)),
-                      ),
-                    if (!isSentByMe && _receiverImagePath == null)
-                      const CircleAvatar(
-                        child: Icon(Icons.person),
-                      ),
-                    Container(
-                      margin: const EdgeInsets.all(8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isSentByMe ? Colors.blue : Colors.grey,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        message['message'],
-                        style: TextStyle(
-                          color: isSentByMe ? Colors.white : Colors.black,
+                  return Row(
+                    mainAxisAlignment:
+                    isSentByMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+                    children: [
+                      if (!isSentByMe && _receiverImagePath != null)
+                        CircleAvatar(
+                          backgroundImage: FileImage(File(_receiverImagePath!)),
+                        ),
+                      const SizedBox(width: 8,),
+                      if (!isSentByMe && _receiverImagePath == null)
+                        const CircleAvatar(
+                          child: Icon(Icons.person),
+                        ),
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: isSentByMe ? Colors.blue : Colors.green.shade200,  // Receiver message color changed
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              spreadRadius: 1,
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          message['message'],
+                          style: TextStyle(
+                            color: isSentByMe ? Colors.white : Colors.black,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
-                    ),
-                    if (isSentByMe && _senderImagePath != null)
-                      CircleAvatar(
-                        backgroundImage: FileImage(File(_senderImagePath!)),
-                      ),
-                    if (isSentByMe && _senderImagePath == null)
-                      const CircleAvatar(
-                        child: Icon(Icons.person),
-                      ),
-                  ],
-                );
-              },
+                      const SizedBox(width: 8,),
+                      if (isSentByMe && _senderImagePath != null)
+                        CircleAvatar(
+                          backgroundImage: FileImage(File(_senderImagePath!)),
+                        ),
+
+                      if (isSentByMe && _senderImagePath == null)
+                        const CircleAvatar(
+                          child: Icon(Icons.person),
+                        ),
+                    ],
+                  );
+                },
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter message...',
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: TextField(
+                        controller: _messageController,
+                        maxLines: null,  // Allow multi-line messages
+                        decoration: const InputDecoration(
+                          hintText: 'Type a message...',
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        style: TextStyle(fontSize: 16),
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  onPressed: _sendMessage,
-                  icon: const Icon(Icons.send),
-                ),
-              ],
+                  IconButton(
+                    onPressed: _sendMessage,
+                    icon: const Icon(Icons.send),
+                    color: Colors.blue,
+                    iconSize: 30,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

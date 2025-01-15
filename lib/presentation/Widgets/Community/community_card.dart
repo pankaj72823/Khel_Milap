@@ -43,13 +43,13 @@ class _CommunityCardState extends State<CommunityCard> {
   Future<void> _checkJoinStatus() async{
     final response = await _supabase
         .from('user_communities')
-        .select('Joined/Not Joined')
+        .select('Joined')
         .eq('user_id', widget.userId)
         .eq('community_id', widget.communityId)
         .maybeSingle();
 
     setState(() {
-      isJoined = response !=false;
+      isJoined = (response !=null);
     });
   }
 
@@ -61,8 +61,9 @@ class _CommunityCardState extends State<CommunityCard> {
       });
 
       await Supabase.instance.client
-          .from('Communities')
-          .update({'Joined/Not Joined': true})
+          .from('user_communities')
+          .update({'Joined': true})
+          .eq('user_id', widget.userId)
           .eq('id', widget.communityId);
       setState(() {
         isJoined = true;
@@ -97,9 +98,7 @@ class _CommunityCardState extends State<CommunityCard> {
                     child: CachedNetworkImage(
                       imageUrl: widget.imagePath,
                       width: 100,
-                      // Adjust the size to match the CircleAvatar
                       height: 100,
-                      // Adjust the size to match the CircleAvatar
                       fit: BoxFit.cover,
                       placeholder: (context, url) =>
                           CircularProgressIndicator(),

@@ -34,7 +34,7 @@ class _MentorsState extends State<Mentors> {
     'Athletics',
     'Hockey',
   ];
-
+  bool isLoading = true;
   @override
   void initState() {
     super.initState();
@@ -42,21 +42,25 @@ class _MentorsState extends State<Mentors> {
   }
 
   Future<void> fetchMentors() async {
+    setState(() {
+      isLoading = true;
+    });
     try {
-      final response = await _supabaseClient
-          .from('Mentors')
-          .select();
+      final response = await _supabaseClient.from('Mentors').select();
       final fetchedMentors = List<Map<String, dynamic>>.from(response);
-
       setState(() {
         mentors = fetchedMentors;
         applyFilters();
       });
     } catch (error) {
       print('Error fetching mentors: $error');
-
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
+
 
 
   void applyFilters() {
@@ -237,8 +241,14 @@ class _MentorsState extends State<Mentors> {
             ),
           ),
           Expanded(
-            flex:1,
-            child: ListView.builder(
+            flex: 1,
+            child: isLoading
+                ? Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.secondaryColor,
+              ),
+            )
+                : ListView.builder(
               itemCount: filteredMentors.length,
               itemBuilder: (context, index) {
                 final mentor = filteredMentors[index];
@@ -252,6 +262,7 @@ class _MentorsState extends State<Mentors> {
               },
             ),
           ),
+
         ],
       ),
     );

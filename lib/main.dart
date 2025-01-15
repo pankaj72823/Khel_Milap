@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:khel_milap/presentation/Screens/signup.dart';
+import 'package:khel_milap/presentation/Screens/welcome_screen.dart';
 import 'package:khel_milap/presentation/theme/theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'KhelMilap',
       theme: AppTheme.lightTheme,
-      home: Signup(),
+      home: WelcomeScreen(),
     );
   }
 }

@@ -4,7 +4,6 @@ import 'package:khel_milap/presentation/Provider/user_id.dart';
 import 'package:khel_milap/presentation/Widgets/Community/community_card.dart';
 import 'package:khel_milap/presentation/theme/theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../theme/styles.dart';
 
 class Community extends ConsumerStatefulWidget {
   const Community({super.key});
@@ -34,6 +33,8 @@ class _Community extends ConsumerState<Community> {
     'Hockey',
   ];
 
+  bool isLoading = true;
+
   @override
   void initState(){
     super.initState();
@@ -42,6 +43,9 @@ class _Community extends ConsumerState<Community> {
   }
 
   Future<void> fetchCommunities() async {
+    setState(() {
+      isLoading = true;
+    });
     try{
       final response = await _supabaseClient
           .from('Communities')
@@ -54,6 +58,10 @@ class _Community extends ConsumerState<Community> {
       });
     } catch(error){
       print("Error fetching: $error");
+    } finally{
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -196,7 +204,13 @@ class _Community extends ConsumerState<Community> {
             ),
               Expanded(
                 flex: 1,
-              child: ListView.builder(
+              child: isLoading
+                  ? Center(
+                child: CircularProgressIndicator(
+                  color: AppTheme.secondaryColor,
+                ),
+              )
+                  :ListView.builder(
                 itemCount: filteredCommunities.length,
                 itemBuilder: (context, index){
                   final community = filteredCommunities[index];

@@ -87,8 +87,8 @@ class _Signup extends ConsumerState<Signup> {
             'profile_pic' : fileName,
           });
           ref.read(userIdProvider.notifier).state = userId;
-
-
+          ref.read(nameProvider.notifier).state = _nameController.text;
+          ref.read(sportsProvider.notifier).state = listSports;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Signup successful!')),
             );
@@ -120,7 +120,7 @@ class _Signup extends ConsumerState<Signup> {
           Opacity(
             opacity: 0.3,
             child: Image.asset(
-              'assets/background.jpg',
+              'assets/cric.png',
               fit: BoxFit.contain,
               height: double.infinity,
               width: double.infinity,

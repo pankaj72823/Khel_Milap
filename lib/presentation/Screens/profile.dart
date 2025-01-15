@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:khel_milap/presentation/Provider/user_id.dart';
+import 'package:khel_milap/presentation/Screens/user_list_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:khel_milap/presentation/Widgets/Profile/gallery_card.dart';
 import 'package:khel_milap/presentation/Widgets/Profile/joined_community_card.dart';
@@ -22,11 +23,9 @@ class _Profile extends ConsumerState<Profile> {
   List<String> galleryImages = [];
   String? profilePicUrl;
   final String photosBucket = 'Photos';
-
   @override
   void initState() {
     super.initState();
-
     Future.microtask( ()  async {
       galleryImages = [];
       await _fetchProfilePic();
@@ -36,57 +35,36 @@ class _Profile extends ConsumerState<Profile> {
 
   }
 
+  Future<void> _removeCommunity(String communityId) async {
+    final userId = ref.watch(userIdProvider);
+    try {
+      await supabase
+          .from('user_communities')
+          .delete()
+          .match({'user_id': "$userId", 'community_id': communityId});
+
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Community removed successfully.')),
+      );
+    } catch (error) {
+      print('Error removing community: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to remove community.')),
+      );
+    }
+  }
 
   Future<void> _fetchProfilePic() async {
     final userId = ref.watch(userIdProvider);
     print("userId: $userId");
     final response = await supabase.from('Profile').select('profile_pic').eq('id', '$userId').single();
-    if (response != null && response['profile_pic'] != null) {
+    if (response['profile_pic'] != null) {
       setState(() {
         profilePicUrl = supabase.storage.from('Photos').getPublicUrl('User/$userId/${response['profile_pic']}');
       });
     }
   }
-
-  // Future<void> _fetchGalleryImages() async {
-  //   final userId = ref.watch(userIdProvider);
-  //   String? path = "User/$userId";
-  //   final response = await supabase.storage.from('Photos').list(path:path);
-  //   print("Path: $User/$userId");
-  //
-  //   List<String> url = [];
-  //   final profilePicFile = await supabase.from('Profile').select('profile_pic').eq('id', userId! as Object).single();
-  //   print("response : $response");
-  //   print(profilePicFile);
-  //   setState(() {
-  //     galleryImages = response
-  //         .where((file) => !file.name.contains(profilePicFile['profile_pic'])) // Exclude profile picture
-  //         .map((file) => supabase.storage.from('Photos').getPublicUrl(file.name))
-  //         .toList();
-  //   });
-  //   print(galleryImages);
-  // }
-  //
-  // // Future<String> _getUserId(WidgetRef ref) async {
-  // //   final id = ref.watch(userIdProvider);
-  // //   return id.toString();
-  // // }
-  //
-  // Future<void> _uploadImage(File imageFile, int index) async {
-  //   final userId = ref.watch(userIdProvider);
-  //   // final timestamp = DateTime.now().millisecondsSinceEpoch;
-  //   final fileName = 'gallery_${index+1}.${imageFile.path.split('.').last}';
-  //   final filePath = 'User/$userId/$fileName';
-  //
-  //   try {
-  //     await supabase.storage.from('Photos').upload(filePath, imageFile);
-  //     setState(() {
-  //       galleryImages.add(supabase.storage.from('Photos').getPublicUrl(filePath));
-  //     });
-  //   } catch (e) {
-  //     print('Error uploading image: $e');
-  //   }
-  // }
 
   Future<void> _fetchGalleryImages() async {
     final userId = ref.watch(userIdProvider);
@@ -165,70 +143,86 @@ class _Profile extends ConsumerState<Profile> {
     final userId = ref.watch(userIdProvider);
     final response = await Supabase.instance.client
         .from('user_communities')
-        .select('community_id, Communities(name, perks, members)')
+        .select('community_id, Communities(title, perks, members)')
         .eq('user_id', "$userId");
-
+    print(response);
     return List<Map<String, dynamic>>.from(response);
   }
 
   @override
   Widget build(BuildContext context) {
+    final userId = ref.watch(userIdProvider);
+    final name = ref.watch(nameProvider);
+    final List<dynamic> sports = ref.watch(sportsProvider)!.toList();
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppTheme.lightTheme.appBarTheme.backgroundColor,
-        title: Text('Profile', style: AppTheme.lightTheme.textTheme.displayLarge?.copyWith(color: Colors.white)),
+        title: Text(
+          'Profile',
+          style: AppTheme.lightTheme.textTheme.displayLarge?.copyWith(color: Colors.white),
+        ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              height: 200,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/sports.jpg'),
-                  fit: BoxFit.cover,
-                ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              SizedBox(height: 20),
+              CircleAvatar(
+                radius: 50,
+                backgroundImage: profilePicUrl != null
+                    ? NetworkImage(profilePicUrl!)
+                    : AssetImage('assets/sports.jpg') as ImageProvider,
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundImage: profilePicUrl != null ? NetworkImage(profilePicUrl!) : AssetImage('assets/sports.jpg') as ImageProvider,
-                  ),
-                  SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Profile',
-                        style: AppTheme.lightTheme.textTheme.displayLarge,
-                      ),
-                      Text(
-                        'Sports Enthusiast',
-                        style: AppTheme.lightTheme.textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
-                ],
+              SizedBox(height: 12),
+              Text(
+                name ?? 'User Name',
+                style: AppTheme.lightTheme.textTheme.displayLarge,
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
+              SizedBox(height: 16),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                alignment: WrapAlignment.center,
+                children: sports.map((sport) {
+                  return Container(
+                    padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      sport,
+                      style: TextStyle(color: Colors.black, fontSize: 16),
+                    ),
+                  );
+                }).toList(),
+              ),
+              SizedBox(height: 20),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => UserListScreen()),
+                      );
+                    },
                     style: AppStyles.primaryButtonStyle,
                     child: Row(
                       children: [
-                        Image.asset('assets/chat.gif', height: 50, width: 50, color: Colors.white),
+                        Icon(Icons.chat, color: Colors.white),
                         SizedBox(width: 12),
                         Text('Chat'),
                       ],
@@ -239,7 +233,7 @@ class _Profile extends ConsumerState<Profile> {
                     style: AppStyles.primaryButtonStyle,
                     child: Row(
                       children: [
-                        Image.asset('assets/add_user.gif', height: 50, width: 50, color: Colors.white),
+                        Icon(Icons.person_add, color: Colors.white),
                         SizedBox(width: 12),
                         Text('Connect'),
                       ],
@@ -247,207 +241,97 @@ class _Profile extends ConsumerState<Profile> {
                   ),
                 ],
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Gallery', style: AppTheme.lightTheme.textTheme.titleLarge),
-                  IconButton(
-                    icon: Icon(Icons.add_circle_outline, size: 32, color: Colors.blue),
-                    onPressed: _pickAndUploadImage,
+              SizedBox(height: 20),
+              Card(
+                margin: EdgeInsets.only(top: 16.0),
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Gallery', style: AppTheme.lightTheme.textTheme.titleLarge),
+                          IconButton(
+                            icon: Icon(Icons.add_circle_outline, size: 32, color: Colors.blue),
+                            onPressed: _pickAndUploadImage,
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10),
+                      if (galleryImages.isNotEmpty)
+                        SizedBox(
+                          height: 200,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: galleryImages.length,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                                child: GalleryCard(imagePath: galleryImages[index]),
+                              );
+                            },
+                          ),
+                        )
+                      else
+                        Text('No images available.'),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            if (galleryImages.isNotEmpty)
-              SizedBox(
-                height: 200,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: galleryImages.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: GalleryCard(imagePath: galleryImages[index]),
-                    );
-                  },
                 ),
               ),
-            SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Text('Highlights', style: AppTheme.lightTheme.textTheme.titleLarge),
-                    FutureBuilder(
+              Card(
+                margin: EdgeInsets.only(top: 16.0),
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Joined Communities',
+                        style: AppTheme.lightTheme.textTheme.titleLarge,
+                      ),
+                      SizedBox(height: 10),
+                      FutureBuilder(
                         future: _getUserCommunities(),
-                        builder: (context, snapshot){
+                        builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Center(child: CircularProgressIndicator());
+                            return Center(child: CircularProgressIndicator());
                           } else if (snapshot.hasError) {
-                            return Center(child: Text('Error: ${snapshot.error}'));
+                            return Text('Error: ${snapshot.error}');
                           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return const Center(child: Text('No joined communities found.'));
+                            return Text('No joined communities found.');
                           }
-
                           final joinedCommunities = snapshot.data!;
                           return ListView.builder(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
                             itemCount: joinedCommunities.length,
                             itemBuilder: (context, index) {
                               final community = joinedCommunities[index];
                               return JoinedCommunityCard(
-                                name: community['name'],
-                                members: community['members'],
-                                perks: community['perks'],
-                                imagePath:  Supabase.instance.client.storage
+                                name: community['Communities']['title'],
+                                members: community['Communities']['members'],
+                                perks: community['Communities']['perks'],
+                                userId: "$userId",
+                                imagePath: Supabase.instance.client.storage
                                     .from('Photos')
-                                    .getPublicUrl('Communities/${community['name'].toLowerCase()}.jpeg'),
+                                    .getPublicUrl('Communities/${community['Communities']['title'].toLowerCase().replaceAll(' ', '')}.jpeg'),
+                                onRemove: () => _removeCommunity(community['community_id']),
+                                communityId: community['community_id'],
                               );
                             },
                           );
-                        }
-                    )
-                  ],
+                        },
+                      )
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
-
-
-
-// import 'package:flutter/material.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:khel_milap/presentation/Widgets/Profile/gallery_card.dart';
-// import 'package:khel_milap/presentation/Widgets/Profile/joined_community_card.dart';
-// import 'package:khel_milap/presentation/theme/theme.dart';
-// import '../theme/styles.dart';
-//
-// class Profile extends ConsumerStatefulWidget {
-//   const Profile({super.key});
-//
-//   @override
-//   _Profile createState() => _Profile();
-// }
-//
-// class _Profile extends ConsumerState<Profile> {
-//
-//
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         backgroundColor: AppTheme.lightTheme.appBarTheme.backgroundColor,
-//         title: Text('Profile', style: AppTheme.lightTheme.textTheme.displayLarge?.copyWith(color: Colors.white)
-//         ),
-//         centerTitle: true,
-//       ),
-//       body: SingleChildScrollView(
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Container(
-//               width: double.infinity,
-//               height: 200,
-//               decoration: BoxDecoration(
-//                 image: DecorationImage(
-//                   image: AssetImage('assets/sports.jpg'),
-//                   fit: BoxFit.cover,
-//                 ),
-//               ),
-//             ),
-//             Padding(
-//               padding: const EdgeInsets.all(16.0),
-//               child: Row(
-//                 children: [
-//                   CircleAvatar(
-//                     radius: 40,
-//                     backgroundImage: AssetImage('assets/sports.jpg'),
-//                   ),
-//                   SizedBox(width: 16),
-//                   Column(
-//                     crossAxisAlignment: CrossAxisAlignment.start,
-//                     children: [
-//                       Text(
-//                         'Athlete Profile',
-//                         style: AppTheme.lightTheme.textTheme.displayLarge,
-//                       ),
-//                       Text(
-//                         'Sports Enthusiast',
-//                         style: AppTheme.lightTheme.textTheme.bodyMedium,
-//                       ),
-//                     ],
-//                   ),
-//                 ],
-//               ),
-//             ),
-//
-//             Padding(
-//               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-//               child: Row(
-//                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//                 children: [
-//                   ElevatedButton(
-//                     onPressed: () {},
-//                     style: AppStyles.primaryButtonStyle,
-//                     child: Row(
-//                       children: [
-//                         Image.asset('assets/chat.gif',height: 50, width: 50, color: Colors.white,),
-//                         SizedBox(width: 12,),
-//                         Text('Chat'),
-//                       ],
-//                     ),
-//                   ),
-//                   ElevatedButton(
-//                     onPressed: () {},
-//                     style: AppStyles.primaryButtonStyle,
-//                     child: Row(
-//                       children: [
-//                         Image.asset('assets/add_user.gif', height: 50, width: 50, color: Colors.white,),
-//                         SizedBox(width: 12,),
-//                         Text('Connect'),
-//                       ],
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//
-//             Padding(
-//               padding: const EdgeInsets.all(16.0),
-//               child: Text('Gallery', style: AppTheme.lightTheme.textTheme.titleLarge),
-//             ),
-//             GalleryCard(imagePath: 'assets/sports.jpg'),
-//             GalleryCard(imagePath: 'assets/sports.jpg'),
-//
-//             SingleChildScrollView(
-//               child: Padding(
-//                 padding: const EdgeInsets.all(16.0),
-//                 child: Column(
-//                   children: [
-//                      Text(
-//                             'Highlights', style: AppTheme.lightTheme.textTheme.titleLarge
-//                         ),
-//                     JoinedCommunityCard(title: 'name', members: 20, perks: 'name', imagePath: 'assets/sports.jpg'),
-//                     JoinedCommunityCard(title: 'name', members: 20, perks: 'name', imagePath: 'assets/sports.jpg'),
-//                     JoinedCommunityCard(title: 'name', members: 20, perks: 'name', imagePath: 'assets/sports.jpg'),
-//                     JoinedCommunityCard(title: 'name', members: 20, perks: 'name', imagePath: 'assets/sports.jpg'),
-//                     JoinedCommunityCard(title: 'name', members: 20, perks: 'name', imagePath: 'assets/sports.jpg'),
-//                     JoinedCommunityCard(title: 'name', members: 20, perks: 'name', imagePath: 'assets/sports.jpg'),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }

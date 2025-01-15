@@ -8,6 +8,8 @@ import 'package:khel_milap/presentation/theme/fonts.dart';
 import 'package:khel_milap/presentation/theme/theme.dart';
 import 'package:khel_milap/presentation/Widgets/HomeScreen/news.dart';
 
+import '../Widgets/HomeScreen/ad_carousel.dart';
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -15,7 +17,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: Icon(Icons.settings, size: 40,),
+        leading:ImageIcon(AssetImage('assets/logo_khel_milap.png'),size: 50,),
         title: const Align(
           alignment: Alignment.center,
           child: Text(
@@ -33,7 +35,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 );
               },
-              child: ImageIcon(AssetImage('assets/chat.gif'),size: 48,)),
+              child: ImageIcon(AssetImage('assets/chat.gif'),size: 40,)),
           const SizedBox(width: 10,),
         ],
       ),
@@ -51,11 +53,15 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _sectionTitle('Sponsored Ads'),
-              _adCard(
-                'Wilson - choice of your idol players',
-                'assets/sports_ad.jpg',
+              AdCarousel(
+                ads: [
+                  {'title': 'Ad 1 ', 'imagePath': 'assets/sports_ad.jpg'},
+                  {'title': 'Ad 2 ', 'imagePath': 'assets/sports_ad.jpg'},
+                  {'title': 'Ad 3', 'imagePath': 'assets/sports_ad.jpg'},
+                  {'title': 'Ad 4 ', 'imagePath': 'assets/sports_ad.jpg'},
+                ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _sectionTitle('Latest News'),
               Container(
                 height: 300,
