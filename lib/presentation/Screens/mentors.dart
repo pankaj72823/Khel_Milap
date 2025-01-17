@@ -83,8 +83,6 @@ class _MentorsState extends State<Mentors> {
         .getPublicUrl('Mentors/$imagePath.jpeg');
     return publicUrl;
   }
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -103,44 +101,46 @@ class _MentorsState extends State<Mentors> {
                 Expanded(
                   flex:1,
                   child: Container(
-                    width: 50,
-                    height: 50,
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(12.0),
+                      padding: const EdgeInsets.all(8.0),
                       child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: selectedRole,
-                          items: sports
-                              .map((role) => DropdownMenuItem(
-                            value: role,
-                            child: Text(
-                              role,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.black,
+                        child: IntrinsicWidth(
+                          child: DropdownButton<String>(
+                            value: selectedRole,
+                            items: sports
+                                .map((role) => DropdownMenuItem(
+                              value: role,
+                              child: Text(
+                                role,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.black,
+                                ),
                               ),
+                            ))
+                                .toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedRole = value!;
+                                applyFilters();
+                              });
+                            },
+                            isDense: true,
+                            icon: Icon(
+                              Icons.arrow_drop_down_circle,
+                              color: AppTheme.secondaryColor,
+                              size: 15,
                             ),
-                          ))
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedRole = value!;
-                              applyFilters();
-                            });
-                          },
-                          icon: Icon(
-                            Icons.arrow_drop_down_circle,
-                            color: AppTheme.secondaryColor,
-                            size: 20,
+                            alignment: Alignment.centerLeft,
+                            dropdownColor: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            style: TextStyle(fontSize: 16, color: Colors.black),
+                            elevation: 3,
                           ),
-                          dropdownColor: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          style: TextStyle(fontSize: 16, color: Colors.black),
-                          elevation: 5,
                         ),
                       ),
                     ),
@@ -150,8 +150,6 @@ class _MentorsState extends State<Mentors> {
                 Expanded(
                   flex:1,
                   child: Container(
-                    width: 60,
-                    height: 50,
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(10),
@@ -159,34 +157,38 @@ class _MentorsState extends State<Mentors> {
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: selectedExperience,
-                          items: experienceLevels
-                              .map((role) => DropdownMenuItem(
-                            value: role,
-                            child: Text(
-                              role,
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black,
+                        child: IntrinsicWidth(
+                          child: DropdownButton<String>(
+                            value: selectedExperience,
+                            items: experienceLevels
+                                .map((role) => DropdownMenuItem(
+                              value: role,
+                              child: Text(
+                                role,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black,
+                                ),
                               ),
+                            ))
+                                .toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedExperience = value!;
+                                applyFilters();
+                              });
+                            },
+                            isDense: true,
+                            icon: Icon(
+                              Icons.arrow_drop_down_circle,
+                              color: AppTheme.secondaryColor,
+                              size: 15,
                             ),
-                          ))
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedExperience = value!;
-                              applyFilters();
-                            });
-                          },
-                          icon: Icon(
-                            Icons.arrow_drop_down_circle,
-                            color: AppTheme.secondaryColor,
+                            dropdownColor: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            style: TextStyle(fontSize: 16, color: Colors.black),
+                            elevation: 5,
                           ),
-                          dropdownColor: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          style: TextStyle(fontSize: 16, color: Colors.black),
-                          elevation: 5,
                         ),
                       ),
                     ),
@@ -196,8 +198,6 @@ class _MentorsState extends State<Mentors> {
                 Expanded(
                   flex: 1,
                   child: Container(
-                    width: 60,
-                    height: 50,
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(10),
@@ -205,33 +205,37 @@ class _MentorsState extends State<Mentors> {
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: selectedFees,
-                          items: feeRanges
-                              .map((role) => DropdownMenuItem(
-                            value: role,
-                            child: Text(
-                              role,
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black,
+                        child: IntrinsicWidth(
+                          child: DropdownButton<String>(
+                            value: selectedFees,
+                            items: feeRanges
+                                .map((role) => DropdownMenuItem(
+                              value: role,
+                              child: Text(
+                                role,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.black,
+                                ),
                               ),
+                            )).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedFees = value!;
+                                applyFilters();
+                              });
+                            },
+                            isDense: true,
+                            icon: Icon(
+                              Icons.arrow_drop_down_circle,
+                              color: AppTheme.secondaryColor,
+                              size: 15,
                             ),
-                          )).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedFees = value!;
-                              applyFilters();
-                            });
-                          },
-                          icon: Icon(
-                            Icons.arrow_drop_down_circle,
-                            color: AppTheme.secondaryColor,
+                            dropdownColor: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            style: TextStyle(fontSize: 16, color: Colors.black),
+                            elevation: 5,
                           ),
-                          dropdownColor: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          style: TextStyle(fontSize: 16, color: Colors.black),
-                          elevation: 5,
                         ),
                       ),
                     ),

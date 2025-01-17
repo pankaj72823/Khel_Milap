@@ -23,7 +23,7 @@ class NewsRemoteDataSourceImpl implements NewsRemoteDataSource{
           'x-rapidapi-key': dotenv.env['NEWS_API_KEY'] ?? '',
       },
     );
-    print(response.statusCode);
+    print("response : $response.statusCode");
     if (response.statusCode == 200) {
       final data = json.decode(response.body)['storyList'];
       print(data);

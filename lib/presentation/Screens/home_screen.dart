@@ -5,7 +5,6 @@ import 'package:khel_milap/presentation/Screens/profile.dart';
 import 'package:khel_milap/presentation/Screens/user_list_screen.dart';
 import 'package:khel_milap/presentation/Widgets/HomeScreen/live_updates.dart';
 import 'package:khel_milap/presentation/theme/fonts.dart';
-import 'package:khel_milap/presentation/theme/theme.dart';
 import 'package:khel_milap/presentation/Widgets/HomeScreen/news.dart';
 
 import '../Widgets/HomeScreen/ad_carousel.dart';
@@ -55,11 +54,12 @@ class HomeScreen extends StatelessWidget {
               _sectionTitle('Sponsored Ads'),
               AdCarousel(
                 ads: [
-                  {'title': 'Ad 1 ', 'imagePath': 'assets/sports_ad.jpg'},
-                  {'title': 'Ad 2 ', 'imagePath': 'assets/sports_ad.jpg'},
-                  {'title': 'Ad 3', 'imagePath': 'assets/sports_ad.jpg'},
-                  {'title': 'Ad 4 ', 'imagePath': 'assets/sports_ad.jpg'},
-                ],
+                  {'title': ' Unleash Your Potential', 'imagePath': 'assets/sports_ad.jpg'},
+                  {'title': ' Train Like a Champion!', 'imagePath': 'assets/sports_ad2.jpeg'},
+                  {'title': 'Play Strong, Play Smart!', 'imagePath': 'assets/sports_ad3.jpg'},
+                  {'title': 'Champion\'s Choice', 'imagePath': 'assets/sports_ad4.jpeg'}
+                ]
+
               ),
               const SizedBox(height: 16),
               _sectionTitle('Latest News'),
@@ -79,7 +79,7 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
                 padding: EdgeInsets.all(16),
-                child: CircularProgressIndicator(),
+                child: News(),
               ),
             ],
           ),
@@ -110,13 +110,7 @@ class HomeScreen extends StatelessWidget {
               Column(
                 children: [
                 GestureDetector(
-                    onTap: () {
-                      // Navigator.push(
-                      //   context, MaterialPageRoute(
-                      //   builder: (context)=> const HomeScreen(),
-                      // ),
-                      // );
-                    },
+                    onTap: () {},
                     child:
                     Image.asset(
                       'assets/peer.gif', height: 40, width: 50,
@@ -231,48 +225,6 @@ class HomeScreen extends StatelessWidget {
       child: Text(
         title,
         style: AppFonts.headline1.copyWith(fontSize: 24),
-      ),
-    );
-  }
-
-  Widget _newsCard(String title, String imagePath) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      clipBehavior: Clip.hardEdge,
-      child: Column(
-        children: [
-          Image.asset(imagePath),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Text(
-              title,
-              style: AppFonts.bodyText,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _adCard(String title, String imagePath) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      clipBehavior: Clip.hardEdge,
-      child: Column(
-        children: [
-          Image.asset(imagePath),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Text(
-              title,
-              style: AppFonts.bodyText,
-            ),
-          ),
-        ],
       ),
     );
   }

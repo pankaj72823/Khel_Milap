@@ -28,13 +28,13 @@ class _AdCarouselState extends State<AdCarousel> {
           Image.asset(
             imagePath,
             fit: BoxFit.cover,
-            height: 200,
+            height: 180,
           ),
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Text(
               title,
-              style: AppFonts.bodyText,
+              style: AppFonts.bodyText.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
           ),
@@ -53,8 +53,8 @@ class _AdCarouselState extends State<AdCarousel> {
             final ad = widget.ads[index];
             return _adCard(ad['title']!, ad['imagePath']!);
           },
-          options:  CarouselOptions(
-            height: 320,
+          options: CarouselOptions(
+            height: 290,
             autoPlay: true,
             enlargeCenterPage: true,
             onPageChanged: (index, reason) {

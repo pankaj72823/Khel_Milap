@@ -130,7 +130,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         margin: const EdgeInsets.symmetric(vertical: 5),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          color: isSentByMe ? Colors.blue : Colors.green.shade200,  // Receiver message color changed
+                          color: isSentByMe ? Colors.blue : Colors.green.shade200,
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
@@ -140,14 +140,20 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                           ],
                         ),
-                        child: Text(
-                          message['message'],
-                          style: TextStyle(
-                            color: isSentByMe ? Colors.white : Colors.black,
-                            fontSize: 16,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.6), // Limit the width to 60% of the screen
+                          child: Text(
+                            message['message'],
+                            style: TextStyle(
+                              color: isSentByMe ? Colors.white : Colors.black,
+                              fontSize: 16,
+                            ),
+                            softWrap: true, // Ensures text wraps
+                            overflow: TextOverflow.visible, // Prevents text from overflowing
                           ),
                         ),
                       ),
+
                       const SizedBox(width: 8,),
                       if (isSentByMe && _senderImagePath != null)
                         CircleAvatar(

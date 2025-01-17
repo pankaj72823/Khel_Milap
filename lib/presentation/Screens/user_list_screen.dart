@@ -124,10 +124,23 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
               Expanded(
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
+                    : _selectedUsers.isEmpty
+                    ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.chat_bubble_outline, size: 60, color: Colors.grey),
+                      const SizedBox(height: 8),
+                      Text(
+                        'You have not started a chat with any user.',
+                        style: TextStyle(fontSize: 18, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                )
                     : ListView.builder(
-                    itemCount: _selectedUsers.length,
-                    itemBuilder: (context, index) {
-                      print("selected users : $_selectedUsers");
+                  itemCount: _selectedUsers.length,
+                  itemBuilder: (context, index) {
                     final user = _selectedUsers[index];
                     return Card(
                       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -155,6 +168,7 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
                   },
                 ),
               ),
+
             ],
           ),
           if (_showDropdown)
@@ -230,6 +244,15 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
                                     'username': user['username'],
                                     'profilePic': profilePicUrl,
                                   });
+                                  Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChatScreen(
+                                      receiverId: user['id'],
+                                      username: user['username'],
+                                    ),
+                                  ),
+                                );
                                 }
                               });
                             },
