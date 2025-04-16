@@ -8,6 +8,8 @@ import 'package:khel_milap/presentation/Screens/signin.dart';
 import 'package:khel_milap/presentation/theme/theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../data/data_source/auth_services.dart';
+
 class Signup extends ConsumerStatefulWidget {
   const Signup({super.key});
 
@@ -21,9 +23,13 @@ class _Signup extends ConsumerState<Signup> {
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _ageController = TextEditingController();
+  String? _selectedGender;
+
   File? _imageFile;
 
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
 
   final Map<String, bool> _sports = {
     'Tennis': false,
@@ -49,14 +55,25 @@ class _Signup extends ConsumerState<Signup> {
 
   }
 
+
   Future<void> _signup() async {
     if (_formKey.currentState!.validate() && _imageFile != null) {
+      setState(() {
+        _isLoading = true;
+      });
       try {
         final response = await _supabase.auth.signUp(
           email: _emailController.text,
           password: _passwordController.text,
         );
 
+        if (response.session != null) {
+          await AuthManager.setLoginTimestamp();
+        } else{
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Signup failed')),
+          );
+        }
         if (response.user != null) {
 
           final userId = response.user?.id;
@@ -72,12 +89,16 @@ class _Signup extends ConsumerState<Signup> {
           }).toList();
 
           await _supabase.from('Users').insert({
-          'id': userId,
-          'username' : _usernameController.text,
-          'name': _nameController.text,
-          'email': _emailController.text,
-          'sports' : listSports ,
+            'id': userId,
+            'username': _usernameController.text,
+            'name': _nameController.text,
+            'email': _emailController.text,
+            'sports': listSports,
+            'age': int.parse(_ageController.text),
+            'gender': [_selectedGender?.toLowerCase()],
           });
+
+
 
           await _supabase.from('Profile').insert({
             'id':userId,
@@ -94,7 +115,7 @@ class _Signup extends ConsumerState<Signup> {
             );
             Navigator.push(
             context, MaterialPageRoute(
-            builder: (context) => HomeScreen(),
+            builder: (context) => HomeScreen(fromSignup: true,),
               ),
             );
       }
@@ -218,7 +239,49 @@ class _Signup extends ConsumerState<Signup> {
                         },
                       ),
                       SizedBox(height: 20),
+                      TextFormField(
+                        controller: _ageController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: "Age",
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your age';
+                          }
+                          final age = int.tryParse(value);
+                          if (age == null) {
+                            return 'Please enter a valid number';
+                          }
+                          if (age < 16 || age > 50) {
+                            return 'Age must be between 16 and 50';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 16),
 
+                      DropdownButtonFormField<String>(
+                        value: _selectedGender,
+                        decoration: InputDecoration(
+                          labelText: "Gender",
+                          border: OutlineInputBorder(),
+                        ),
+                        items: ['Male', 'Female', 'Other'].map((String gender) {
+                          return DropdownMenuItem<String>(
+                            value: gender,
+                            child: Text(gender),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedGender = newValue;
+                          });
+                        },
+                        validator: (value) => value == null ? 'Please select your gender' : null,
+                      ),
+                      SizedBox(height: 16),
                       Text(
                         "Select Sports",
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -262,8 +325,17 @@ class _Signup extends ConsumerState<Signup> {
                             padding: EdgeInsets.symmetric(vertical: 16),
                             textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
-                          child: Text("Sign Up"),
-                        ),
+                          child: _isLoading ?
+                                  SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 3,
+                                  ),
+                                  )
+                          :Text("Sign Up"),
+                      ),
                       ),
                       SizedBox(height: 16),
 

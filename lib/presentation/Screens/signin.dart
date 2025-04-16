@@ -7,6 +7,8 @@ import 'package:khel_milap/presentation/Screens/signup.dart';
 import 'package:khel_milap/presentation/theme/theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../data/data_source/auth_services.dart';
+
 class Signin extends ConsumerStatefulWidget {
   const Signin({super.key});
 
@@ -23,10 +25,17 @@ class _Signin extends ConsumerState<Signin> {
 
   Future<void> signIn() async {
 
-    await Supabase.instance.client.auth.signInWithPassword(
+    final response = await Supabase.instance.client.auth.signInWithPassword(
       email: _emailController.text,
       password: _passwordController.text,
     );
+    if (response.session != null) {
+      await AuthManager.setLoginTimestamp();
+    } else{
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Signin failed')),
+      );
+    }
     final res = await _supabase
         .from('Users')
         .select('id,name,sports')
@@ -41,7 +50,7 @@ class _Signin extends ConsumerState<Signin> {
 
       Navigator.push(
           context, MaterialPageRoute(
-          builder: (context) => HomeScreen(),
+          builder: (context) => HomeScreen(fromSignup: false,),
       ),
       );
     }

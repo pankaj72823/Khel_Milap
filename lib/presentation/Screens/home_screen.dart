@@ -1,17 +1,135 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:khel_milap/presentation/Screens/community.dart';
 import 'package:khel_milap/presentation/Screens/mentors.dart';
+import 'package:khel_milap/presentation/Screens/peer_matching.dart';
 import 'package:khel_milap/presentation/Screens/profile.dart';
 import 'package:khel_milap/presentation/Screens/user_list_screen.dart';
 import 'package:khel_milap/presentation/Widgets/HomeScreen/live_updates.dart';
 import 'package:khel_milap/presentation/theme/fonts.dart';
-import 'package:khel_milap/presentation/Widgets/HomeScreen/news.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../Widgets/HomeScreen/ad_carousel.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  final bool fromSignup;
+  const HomeScreen({super.key, this.fromSignup = false});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  bool _hasAskedPermission = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.fromSignup) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _handleLocationPrompt();
+      });
+    }
+  }
+
+  Future<void> _handleLocationPrompt() async {
+    if (_hasAskedPermission) return;
+    _hasAskedPermission = true;
+
+    final answer = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Text("Enable Peer Matching?"),
+        content: const Text(
+          "Would you like to share your location to help find peers near you?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("No"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Yes"),
+          ),
+        ],
+      ),
+    );
+
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    final userId = user.id;
+
+    if (answer == true) {
+      // setState(() => _loading = true);
+      _showLoadingDialog();
+
+      try {
+        await Supabase.instance.client
+            .from('Users')
+            .update({'is_visible': true})
+            .eq('id', userId);
+
+        final permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          Navigator.pop(context);
+          _showSnackBar("Location permission denied. Showing home screen.");
+          return;
+        }
+
+        Position position = await Geolocator.getCurrentPosition(
+            locationSettings: LocationSettings(
+              accuracy: LocationAccuracy.best,
+              distanceFilter: 0,
+            ));
+          await Supabase.instance.client
+              .from('Users')
+              .update({
+              'latitude': position.latitude,
+              'longitude': position.longitude,
+               })
+              .eq('id', userId);
+
+          _showSnackBar("Location shared and updated successfully.");
+
+      } catch (e) {
+        _showSnackBar("Failed to update location: $e");
+      } finally {
+        Navigator.pop(context);
+        // setState(() => _loading = false);
+      }
+    } else {
+      await Supabase.instance.client
+          .from('Users')
+          .update({'is_visible': false})
+          .eq('id', userId);
+
+      _showSnackBar("You chose not to share your location.");
+    }
+  }
+
+  void _showSnackBar(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  void _showLoadingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 20),
+            Text("Updating location..."),
+          ],
+        ),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,24 +181,24 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               _sectionTitle('Latest News'),
-              Container(
-                height: 300,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      spreadRadius: 1,
-                      blurRadius: 5,
-                      offset: Offset(0, 3),
-                    ),
-                  ],
-                ),
-                padding: EdgeInsets.all(16),
-                child: News(),
-              ),
+              // Container(
+              //   height: 300,
+              //   width: double.infinity,
+              //   decoration: BoxDecoration(
+              //     color: Colors.white,
+              //     borderRadius: BorderRadius.circular(12),
+              //     boxShadow: [
+              //       BoxShadow(
+              //         color: Colors.black12,
+              //         spreadRadius: 1,
+              //         blurRadius: 5,
+              //         offset: Offset(0, 3),
+              //       ),
+              //     ],
+              //   ),
+              //   padding: EdgeInsets.all(16),
+              //   child: News(),
+              // ),
             ],
           ),
         ),
@@ -96,7 +214,7 @@ class HomeScreen extends StatelessWidget {
             borderRadius: BorderRadius.all(Radius.circular(24)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black12.withOpacity(0.7),
+                color: Colors.black12,
                 offset: const Offset(0,20),
                 blurRadius: 20,
               )
@@ -110,7 +228,13 @@ class HomeScreen extends StatelessWidget {
               Column(
                 children: [
                 GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context, MaterialPageRoute(
+                        builder: (context)=> PeerMatching(),
+                      ),
+                      );
+                    },
                     child:
                     Image.asset(
                       'assets/peer.gif', height: 40, width: 50,
